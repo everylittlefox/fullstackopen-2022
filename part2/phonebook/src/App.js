@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import personsService from "./services/persons";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -7,7 +7,7 @@ const App = () => {
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((p) => setPersons(p.data));
+    personsService.fetchAll().then((persons) => setPersons(persons));
   }, []);
 
   const handleNewNameChange = (e) =>
@@ -15,19 +15,42 @@ const App = () => {
   const handleNewNumberChange = (e) =>
     setNewPerson((s) => ({ ...s, number: e.target.value }));
 
-  const addName = (e) => {
+  const addPerson = (e) => {
     e.preventDefault();
-    const personWithNameExists = persons.some(
+    const personWithName = persons.find(
       (p) => p.name.toLowerCase() === newPerson.name.toLowerCase()
     );
 
-    if (personWithNameExists) {
-      alert(`${newPerson.name} is already added to phonebook`);
+    if (personWithName) {
+      const shouldUpdate = window.confirm(
+        `${personWithName.name} is already added to phonebook, replace the old number with a new one?`
+      );
+
+      if (shouldUpdate) {
+        personsService
+          .updatePerson({ ...personWithName, number: newPerson.number })
+          .then((updatedPerson) =>
+            setPersons(
+              persons.map((p) =>
+                p.id === updatedPerson.id ? updatedPerson : p
+              )
+            )
+          );
+      }
     } else {
-      newPerson.id = persons.length + 1;
-      setPersons([...persons, newPerson]);
-      setNewPerson({ name: "", number: "" });
+      personsService.createPerson(newPerson).then((person) => {
+        setPersons([...persons, person]);
+        setNewPerson({ name: "", number: "" });
+      });
     }
+  };
+
+  const deletePerson = (id) => {
+    const p = persons.find((p) => p.id === id);
+    if (window.confirm(`Delete ${p.name}?`))
+      personsService
+        .deletePerson(id)
+        .then(() => setPersons(persons.filter((p) => p.id !== id)));
   };
 
   const handleQueryChange = (e) => setQuery(e.target.value);
@@ -46,10 +69,10 @@ const App = () => {
         number={newPerson.number}
         onNameChange={handleNewNameChange}
         onNumberChange={handleNewNumberChange}
-        onSubmit={addName}
+        onSubmit={addPerson}
       />
       <h2>Numbers</h2>
-      <Persons persons={personsToDisplay} />
+      <Persons persons={personsToDisplay} onDelete={deletePerson} />
     </div>
   );
 };
@@ -84,13 +107,16 @@ const PersonForm = ({
   </form>
 );
 
-const Persons = ({ persons }) => (
+const Persons = ({ persons, onDelete }) => (
   <table>
     <tbody>
-      {persons.map(({ name, number }) => (
+      {persons.map(({ name, number, id }) => (
         <tr key={number}>
           <th align="left">{name}</th>
           <td>{number}</td>
+          <td>
+            <button onClick={() => onDelete(id)}>delete</button>
+          </td>
         </tr>
       ))}
     </tbody>

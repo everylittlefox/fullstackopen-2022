@@ -5,6 +5,7 @@ const App = () => {
   const [persons, setPersons] = useState([]);
   const [newPerson, setNewPerson] = useState({ name: "", number: "" });
   const [query, setQuery] = useState("");
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     personsService.fetchAll().then((persons) => setPersons(persons));
@@ -35,12 +36,22 @@ const App = () => {
                 p.id === updatedPerson.id ? updatedPerson : p
               )
             )
-          );
+          )
+          .catch((r) => {
+            if (r.response.status === 404) {
+              setPersons(persons.filter((p) => p.id !== personWithName.id));
+              setMessage({
+                text: `Information of ${personWithName.name} has already been removed from server`,
+                error: true,
+              });
+            }
+          });
       }
     } else {
       personsService.createPerson(newPerson).then((person) => {
         setPersons([...persons, person]);
         setNewPerson({ name: "", number: "" });
+        setMessage({ text: `Added ${person.name}` });
       });
     }
   };
@@ -62,6 +73,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      {message && <Message {...message} onTimedOut={() => setMessage(null)} />}
       <Filter query={query} onChange={handleQueryChange} />
       <h3>Add a new</h3>
       <PersonForm
@@ -122,5 +134,14 @@ const Persons = ({ persons, onDelete }) => (
     </tbody>
   </table>
 );
+
+const Message = ({ text, error, onTimedOut }) => {
+  useEffect(() => {
+    const ref = setTimeout(() => onTimedOut(), 5000);
+    return () => clearTimeout(ref);
+  }, []);
+
+  return <p className={`message ${error ? "error" : "success"}`}>{text}</p>;
+};
 
 export default App;

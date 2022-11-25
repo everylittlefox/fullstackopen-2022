@@ -139,7 +139,7 @@ const Message = ({ text, error, onTimedOut }) => {
   useEffect(() => {
     const ref = setTimeout(() => onTimedOut(), 5000);
     return () => clearTimeout(ref);
-  }, []);
+  }, [onTimedOut]);
 
   return <p className={`message ${error ? "error" : "success"}`}>{text}</p>;
 };

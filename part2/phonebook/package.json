@@ -40,5 +40,5 @@
   "devDependencies": {
     "json-server": "^0.17.1"
   },
-  "proxy": "http://fullstackopen-2022-part3.ajizanci.repl.co"
+  "proxy": "http://localhost:3001"
 }

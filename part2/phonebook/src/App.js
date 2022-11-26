@@ -45,14 +45,22 @@ const App = () => {
                 error: true,
               });
             }
+            if (r.response.status === 400)
+              setMessage({ text: r.response.data.error, error: true });
           });
       }
     } else {
-      personsService.createPerson(newPerson).then((person) => {
-        setPersons([...persons, person]);
-        setNewPerson({ name: "", number: "" });
-        setMessage({ text: `Added ${person.name}` });
-      });
+      personsService
+        .createPerson(newPerson)
+        .then((person) => {
+          setPersons([...persons, person]);
+          setNewPerson({ name: "", number: "" });
+          setMessage({ text: `Added ${person.name}` });
+        })
+        .catch((r) => {
+          if (r.response.status === 400)
+            setMessage({ text: r.response.data.error, error: true });
+        });
     }
   };
 

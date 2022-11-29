@@ -27,10 +27,18 @@ const reducer = (state = initialState, action) => {
 
       return [...state.slice(0, idx), votedAnecdote, ...state.slice(idx + 1)]
 
+    case 'ADD_ANECDOTE':
+      return state.concat(action.data)
+
     default:
       return state
   }
 }
+
+export const createAnecdote = (anecdote) => ({
+  type: 'ADD_ANECDOTE',
+  data: asObject(anecdote)
+})
 
 export const voteAnecdote = (id) => ({ type: 'VOTE', data: id })
 

@@ -17,7 +17,7 @@ const { setNotification: set, clearNotification } = notificationSlice.actions
 
 export const setNotification = (message, delay) => {
   return async (dispatch) => {
-    set(message)
+    dispatch(set(message))
 
     return new Promise((resolve) => {
       setTimeout(() => {
